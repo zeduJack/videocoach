@@ -1,5 +1,6 @@
 import {Routes} from '@angular/router';
 import {CameraComponent} from "./camera/camera.component";
+import {RecorderComponent} from "./recorder/recorder.component";
 
 export const routes: Routes = [
     {
@@ -10,5 +11,9 @@ export const routes: Routes = [
     {
         path: "camera",
         component: CameraComponent
+    },
+    {
+        path: "recorder",
+        component: RecorderComponent
     }
 ];
