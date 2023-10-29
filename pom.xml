@@ -1,0 +1,19 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- ...other project information... -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ch.zedu.videocoach</groupId>
+    <artifactId>videocoach</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging> <!-- This indicates that this is a parent POM -->
+
+    <modules>
+        <module>server</module>
+        <module>ui</module>
+    </modules>
+
+    <!-- Common configurations and dependencies can go here -->
+
+</project>
