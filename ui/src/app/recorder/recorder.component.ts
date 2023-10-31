@@ -10,32 +10,37 @@ import {CommonModule} from '@angular/common';
 })
 export class RecorderComponent implements AfterViewInit {
     @ViewChild('videoElement') videoElementRef!: ElementRef;
-    // mediaRecorder!: MediaRecorder;
+    mediaRecorder!: MediaRecorder;
+
+     socket = new WebSocket('ws://localhost:8080/video');
 
     ngAfterViewInit(): void {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({video: true})
                 .then((mediaStream) => {
-                    const socket = new WebSocket('ws://localhost:8080/video');
+                    this.mediaRecorder = new MediaRecorder(mediaStream);
+                    this.socket.binaryType = 'arraybuffer';
 
-                    socket.binaryType = 'arraybuffer';
-
-                    socket.onopen = () => {
-                         const mediaRecorder = new MediaRecorder(mediaStream);
-
-                        mediaRecorder.ondataavailable = (event) => {
-                            if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
-                                socket.send(event.data);
-                            }
-                        };
-
-                        mediaRecorder.start(1000); // mediaRecorder.ondataavailable is only invoked if this is set
-                        // this.mediaRecorder.start();
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0 && this.socket.readyState === WebSocket.OPEN) {
+                            this.socket.send(event.data);
+                        }
                     };
 
-                    socket.onerror = (error) => {
+                   this.mediaRecorder.start(100); // Send data every 100ms
+
+                    this.socket.onerror = (error) => {
                         console.error('WebSocket Error:', error);
                     };
+                    this.socket.onclose = function(msg) {
+                        console.log("On Close = " + msg);
+                    }
+
+                    this.socket.onmessage = (event) => {
+                        console.log('onmessage', event)
+                        // Handle received messages here
+                    };
+
                 })
                 .catch((error) => {
                     console.error('Error accessing the camera:', error);
@@ -47,5 +52,12 @@ export class RecorderComponent implements AfterViewInit {
         // }, 5000)
 
         // setTimeout(() => this.mediaRecorder.requestData(), 1000)
+    }
+
+    protected readonly stop = stop;
+
+    stopRecording() {
+        this.mediaRecorder.stop()
+        this.mediaRecorder.stop()
     }
 }
