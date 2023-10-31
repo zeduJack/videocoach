@@ -10,7 +10,7 @@ class WebSocketHandler : BinaryWebSocketHandler() {
     private lateinit var outputStream: FileOutputStream
     override fun afterConnectionEstablished(session: WebSocketSession) {
         super.afterConnectionEstablished(session)
-        outputStream = FileOutputStream("/Users/zeljkodujmovic/Workarea/videocoach/ui/src/assets/video.h264")
+        outputStream = FileOutputStream("/Users/zeljkodujmovic/Workarea/videocoach/ui/src/assets/video.h264", true)
     }
 
 

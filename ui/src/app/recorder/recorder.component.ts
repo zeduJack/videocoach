@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, ViewChild} from '@angular/core';
+import {Component, ElementRef, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 
 @Component({
@@ -8,16 +8,19 @@ import {CommonModule} from '@angular/common';
     templateUrl: './recorder.component.html',
     styleUrls: ['./recorder.component.scss']
 })
-export class RecorderComponent implements AfterViewInit {
+export class RecorderComponent {
     @ViewChild('videoElement') videoElementRef!: ElementRef;
+
+    mediaStream!: MediaStream;
+
     mediaRecorder!: MediaRecorder;
+    socket = new WebSocket('ws://localhost:8080/video');
 
-     socket = new WebSocket('ws://localhost:8080/video');
-
-    ngAfterViewInit(): void {
+    startStreaming(): void {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({video: true})
                 .then((mediaStream) => {
+                    this.mediaStream = mediaStream;
                     this.mediaRecorder = new MediaRecorder(mediaStream);
                     this.socket.binaryType = 'arraybuffer';
 
@@ -27,12 +30,12 @@ export class RecorderComponent implements AfterViewInit {
                         }
                     };
 
-                   this.mediaRecorder.start(100); // Send data every 100ms
+                    this.mediaRecorder.start(100); // Send data every 100ms
 
                     this.socket.onerror = (error) => {
                         console.error('WebSocket Error:', error);
                     };
-                    this.socket.onclose = function(msg) {
+                    this.socket.onclose = function (msg) {
                         console.log("On Close = " + msg);
                     }
 
@@ -57,7 +60,9 @@ export class RecorderComponent implements AfterViewInit {
     protected readonly stop = stop;
 
     stopRecording() {
-        this.mediaRecorder.stop()
+        this.mediaStream.getTracks().forEach(function(track) {
+            track.stop();
+        });
         this.mediaRecorder.stop()
     }
 }
