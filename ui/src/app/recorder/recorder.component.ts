@@ -60,9 +60,10 @@ export class RecorderComponent {
     protected readonly stop = stop;
 
     stopRecording() {
+        this.mediaRecorder.stop();
         this.mediaStream.getTracks().forEach(function(track) {
             track.stop();
         });
-        this.mediaRecorder.stop()
+        this.socket.close();
     }
 }
