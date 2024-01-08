@@ -14,9 +14,14 @@ export class RecorderComponent {
     mediaStream!: MediaStream;
 
     mediaRecorder!: MediaRecorder;
-    socket = new WebSocket('ws://localhost:8080/video');
+    socket!:WebSocket;
 
     startStreaming(): void {
+
+        if(!this.socket || this.socket?.readyState === WebSocket.CLOSED){
+            this.socket = new WebSocket('ws://localhost:8080/video');
+        }
+
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({video: true})
                 .then((mediaStream) => {

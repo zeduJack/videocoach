@@ -1,17 +1,19 @@
 package ch.zedu.videocoach.server
 
-import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
 import org.springframework.web.socket.BinaryMessage
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.BinaryWebSocketHandler
 import java.io.File
 import java.io.FileOutputStream
-import org.bytedeco.javacv.FFmpegFrameRecorder
-import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.file.StandardOpenOption
 
 
 class WebSocketHandler : BinaryWebSocketHandler() {
+    private lateinit var fileChannel: FileChannel
+
+
     private lateinit var outputStream: FileOutputStream
     private val streamFileBasolutePath = "/Users/zeljkodujmovic/Workarea/videocoach/ui/src/assets/video.h264"
     private val mp4FileBasolutePath = "/Users/zeljkodujmovic/Workarea/videocoach/ui/src/assets/video.mp4"
@@ -21,19 +23,17 @@ class WebSocketHandler : BinaryWebSocketHandler() {
         videoFile.createNewFile() // if file already exists will do nothing
 
         super.afterConnectionEstablished(session)
-        outputStream = FileOutputStream(videoFile)
+        fileChannel = FileChannel.open(videoFile.toPath(), StandardOpenOption.WRITE)
     }
 
 
     override fun handleBinaryMessage(session: WebSocketSession, message: BinaryMessage) {
-        val data = message.payload.array()
-        outputStream.write(data)
+        val data = message.payload
+        fileChannel.write(data)
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
-        outputStream.close()
-        // Convert video.h264 to output.mp4 using FFmpeg here...
-
+        fileChannel.close()
         convertH264ToMp4(streamFileBasolutePath, mp4FileBasolutePath)
     }
 

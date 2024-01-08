@@ -12,9 +12,9 @@ class ContinuousStreamConverter {
             "-c:v", "copy",  // Copy the video codec as it's already H.264
             "-c:a", "aac",  // Convert audio to AAC
             "-f", "hls",  // HLS format
-            "-hls_time", "6",  // Segment length in seconds
-            "-hls_list_size", "10",  // Number of segments to include in the playlist
-            "-hls_flags", "delete_segments+append_list",  // Delete old segments and append to the list
+            "-hls_time", "4",  // Segment length in seconds
+//            "-hls_list_size", "100",  // Number of segments to include in the playlist
+//            "-hls_flags", "delete_segments+append_list",  // Delete old segments and append to the list
             "$outputDirectory/stream.m3u8"
         )
         try {

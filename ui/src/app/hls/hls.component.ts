@@ -49,7 +49,7 @@ export class HlsComponent implements OnInit {
                     setTimeout(() => {
                         this.hls.destroy();
                         this.setupVideoPlayer();
-                    }, 2000)
+                    }, 1000)
             }
         }
     }
