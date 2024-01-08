@@ -19,7 +19,8 @@ export class RecorderComponent {
     startStreaming(): void {
 
         if(!this.socket || this.socket?.readyState === WebSocket.CLOSED){
-            this.socket = new WebSocket('ws://localhost:8080/video');
+            // this.socket = new WebSocket('ws://localhost:8080/video'); // for java server
+            this.socket = new WebSocket('ws://localhost:8080'); // for node server
         }
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
