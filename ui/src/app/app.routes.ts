@@ -1,7 +1,7 @@
 import {Routes} from '@angular/router';
 import {CameraComponent} from "./camera/camera.component";
 import {RecorderComponent} from "./recorder/recorder.component";
-import {ViewerComponent} from "./viewer/viewer.component";
+import {HlsComponent} from "./hls/hls.component";
 import {Mp4StreameViewerComponent} from "./mp4-streame-viewer/mp4-streame-viewer.component";
 import {H264StreameViewerComponent} from "./h264-streame-viewer/h264-streame-viewer.component";
 
@@ -21,7 +21,7 @@ export const routes: Routes = [
     },
     {
         path: "viewer",
-        component: ViewerComponent
+        component: HlsComponent
     },
     {
         path: "mp4streamviewer",
@@ -30,5 +30,9 @@ export const routes: Routes = [
     {
         path: "h264streamviewer",
         component: H264StreameViewerComponent
+    },
+    {
+        path: "hls",
+        component: HlsComponent
     }
 ];

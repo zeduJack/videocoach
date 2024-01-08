@@ -1,11 +1,14 @@
 package ch.zedu.videocoach.server
 
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
 import org.springframework.web.socket.BinaryMessage
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.BinaryWebSocketHandler
 import java.io.File
 import java.io.FileOutputStream
+import org.bytedeco.javacv.FFmpegFrameRecorder
+import java.nio.ByteBuffer
 
 
 class WebSocketHandler : BinaryWebSocketHandler() {
@@ -50,4 +53,42 @@ class WebSocketHandler : BinaryWebSocketHandler() {
         // Wait for the process to complete
         process.waitFor()
     }
+
+//    private fun processVideoStream(payload: ByteBuffer) {
+//        // Parameters for video stream
+//        val width = 640  // example width
+//        val height = 480 // example height
+//
+//        // HLS segmenter configuration
+//        val segmentLength = 10 // in seconds
+//        val segmenter = FFmpegFrameRecorder("path/to/output.m3u8", width, height).apply {
+//            format = "hls"
+//            videoCodec = AV_CODEC_ID_H264
+//            frameRate = 30.0 // example frame rate
+//            gopSize = frameRate.toInt() * 2 // Group of Pictures (GOP) size
+//            videoBitrate = 1000000 // example bitrate
+//
+//            // HLS-specific options
+//            setOption("hls_time", segmentLength.toString())
+//            setOption("hls_list_size", "0") // No limit on the number of segments in the playlist
+//            setOption("hls_flags", "delete_segments+append_list") // Delete segments older than the playlist
+//        }
+//
+//        try {
+//            segmenter.start()
+//
+//            // Assuming payload is a raw video frame. Convert and process it.
+//            // The conversion depends on your video format.
+//            val frame = ... // Convert ByteBuffer to Frame
+//            segmenter.record(frame)
+//
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            // Handle exceptions
+//        } finally {
+//            segmenter.stop()
+//            segmenter.release()
+//        }
+//    }
+
 }
