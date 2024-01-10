@@ -6,11 +6,17 @@ import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.BinaryWebSocketHandler
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 
 
 class WebSocketHandler : BinaryWebSocketHandler() {
+
+    private var ffmpegProcess: Process? = null
+    private var ffmpegInput: OutputStream? = null
+
     private lateinit var fileChannel: FileChannel
 
 
@@ -19,22 +25,55 @@ class WebSocketHandler : BinaryWebSocketHandler() {
     private val mp4FileBasolutePath = "/Users/zeljkodujmovic/Workarea/videocoach/ui/src/assets/video.mp4"
 
     override fun afterConnectionEstablished(session: WebSocketSession) {
-        val videoFile = File(streamFileBasolutePath)
-        videoFile.createNewFile() // if file already exists will do nothing
 
-        super.afterConnectionEstablished(session)
-        fileChannel = FileChannel.open(videoFile.toPath(), StandardOpenOption.WRITE)
+        val processBuilder = ProcessBuilder(
+            "ffmpeg",
+            "-i", "-",  // '-' means reading from stdin
+            "-c:v", "copy",  // Copy video codec
+            "-c:a", "aac",  // Convert audio to AAC
+            "-f", "hls",  // HLS format
+            "-hls_time", "3",  // Segment length in seconds
+            "-hls_list_size", "200",  // Number of segments to keep in the playlist
+            "-hls_flags", "delete_segments",  // Delete old segments
+            "/Users/zeljkodujmovic/Workarea/videocoach/ui/src/assets/hls/stream.m3u8"
+        )
+
+        try {
+            ffmpegProcess = processBuilder.start()
+            ffmpegInput = ffmpegProcess!!.outputStream
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+//        val videoFile = File(streamFileBasolutePath)
+//        videoFile.createNewFile() // if file already exists will do nothing
+//
+//        super.afterConnectionEstablished(session)
+//        fileChannel = FileChannel.open(videoFile.toPath(), StandardOpenOption.WRITE)
     }
 
 
     override fun handleBinaryMessage(session: WebSocketSession, message: BinaryMessage) {
-        val data = message.payload
-        fileChannel.write(data)
+        val payload = message.payload
+        if (ffmpegInput != null) {
+            try {
+                val data = ByteArray(payload.remaining())
+                payload.get(data)
+                ffmpegInput!!.write(data)
+                ffmpegInput!!.flush()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                // Handle IOException (e.g., FFmpeg process ended unexpectedly)
+            }
+        }
+
+
+//        fileChannel.write(payload)
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
-        fileChannel.close()
-        convertH264ToMp4(streamFileBasolutePath, mp4FileBasolutePath)
+//        fileChannel.close()
+//        convertH264ToMp4(streamFileBasolutePath, mp4FileBasolutePath)
     }
 
     override fun supportsPartialMessages(): Boolean {
@@ -53,42 +92,5 @@ class WebSocketHandler : BinaryWebSocketHandler() {
         // Wait for the process to complete
         process.waitFor()
     }
-
-//    private fun processVideoStream(payload: ByteBuffer) {
-//        // Parameters for video stream
-//        val width = 640  // example width
-//        val height = 480 // example height
-//
-//        // HLS segmenter configuration
-//        val segmentLength = 10 // in seconds
-//        val segmenter = FFmpegFrameRecorder("path/to/output.m3u8", width, height).apply {
-//            format = "hls"
-//            videoCodec = AV_CODEC_ID_H264
-//            frameRate = 30.0 // example frame rate
-//            gopSize = frameRate.toInt() * 2 // Group of Pictures (GOP) size
-//            videoBitrate = 1000000 // example bitrate
-//
-//            // HLS-specific options
-//            setOption("hls_time", segmentLength.toString())
-//            setOption("hls_list_size", "0") // No limit on the number of segments in the playlist
-//            setOption("hls_flags", "delete_segments+append_list") // Delete segments older than the playlist
-//        }
-//
-//        try {
-//            segmenter.start()
-//
-//            // Assuming payload is a raw video frame. Convert and process it.
-//            // The conversion depends on your video format.
-//            val frame = ... // Convert ByteBuffer to Frame
-//            segmenter.record(frame)
-//
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            // Handle exceptions
-//        } finally {
-//            segmenter.stop()
-//            segmenter.release()
-//        }
-//    }
 
 }

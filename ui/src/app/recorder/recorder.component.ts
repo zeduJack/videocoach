@@ -14,17 +14,17 @@ export class RecorderComponent {
     mediaStream!: MediaStream;
 
     mediaRecorder!: MediaRecorder;
-    socket!:WebSocket;
+    socket!: WebSocket;
 
     startStreaming(): void {
 
-        if(!this.socket || this.socket?.readyState === WebSocket.CLOSED){
-            // this.socket = new WebSocket('ws://localhost:8080/video'); // for java server
-            this.socket = new WebSocket('ws://localhost:8080'); // for node server
+        if (!this.socket || this.socket?.readyState === WebSocket.CLOSED) {
+             this.socket = new WebSocket('ws://localhost:8080/video'); // for java server
+            //this.socket = new WebSocket('ws://localhost:8080'); // for node server
         }
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({video: true})
+            navigator.mediaDevices.getUserMedia({video: true, audio: true})
                 .then((mediaStream) => {
                     this.mediaStream = mediaStream;
                     this.mediaRecorder = new MediaRecorder(mediaStream);
@@ -67,7 +67,7 @@ export class RecorderComponent {
 
     stopRecording() {
         this.mediaRecorder.stop();
-        this.mediaStream.getTracks().forEach(function(track) {
+        this.mediaStream.getTracks().forEach(function (track) {
             track.stop();
         });
         this.socket.close();
