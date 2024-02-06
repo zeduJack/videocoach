@@ -1,4 +1,4 @@
-import {Component, ElementRef, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './delayed-video.component.html',
   styleUrls: ['./delayed-video.component.scss']
 })
-export class DelayedVideoComponent {
+export class DelayedVideoComponent implements AfterViewInit{
   @ViewChild('videoElement') videoElementRef!: ElementRef;
   @ViewChild('canvasElement') canvasElementRef!: ElementRef;
   @ViewChild('delayedECanwas') delayedCanvas!: ElementRef;
