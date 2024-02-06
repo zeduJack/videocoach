@@ -1,0 +1,9 @@
+<video style="display: none" #videoElement width="640" height="480" autoplay></video>
+
+<canvas style="display: none" #canvasElement></canvas>
+<br>
+<canvas #delayedECanwas></canvas>
+
+<div class="slidecontainer">
+    <input #slider type="range" [min]="2" [max]="videoChunks.length" class="slider" id="myRange">
+</div>
