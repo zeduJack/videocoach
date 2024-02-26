@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peer B - Receiver</title>
+</head>
+<body>
+<video id="remoteVideo" autoplay></video>
+<script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+<script>
+    const socket = io('http://localhost:3000');  // Connects to the server hosting the page
+    const remoteVideo = document.getElementById('remoteVideo');
+    const peerConnection = new RTCPeerConnection();
+
+    peerConnection.ontrack = event => {
+      [remoteVideo.srcObject] = event.streams;
+    };
+
+    peerConnection.onicecandidate = event => {
+      if (event.candidate) {
+        socket.emit('candidate', roomId, event.candidate);
+      }
+    };
+
+    socket.on('offer', (offer) => {
+      peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+      peerConnection.createAnswer().then(answer => {
+        peerConnection.setLocalDescription(answer);
+        socket.emit('answer', roomId, answer);
+      });
+    });
+
+    socket.on('candidate', (candidate) => {
+      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    });
+</script>
+</body>
+</html>

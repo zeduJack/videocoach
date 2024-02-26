@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Peer A - Sender</title>
+</head>
+<body>
+<video id="localVideo" autoplay muted></video>
+<script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+<script>
+    const localVideo = document.getElementById('localVideo');
+    const socket = io('http://localhost:3000');  // Connects to the server hosting the page
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        localVideo.srcObject = stream;
+        // Signal to the server to create a room or wait for a peer
+        socket.emit('create or join', roomId);
+        initializePeerConnection(stream);
+      }).catch(error => {
+        console.error('Error accessing media devices.', error);
+      });
+
+    const peerConnection = new RTCPeerConnection();
+
+    function initializePeerConnection(stream) {
+      stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+
+      peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+          socket.emit('candidate', roomId, event.candidate);
+        }
+      };
+
+      // Sending offer to the other peer
+      peerConnection.createOffer().then(offer => {
+        peerConnection.setLocalDescription(offer);
+        socket.emit('offer', roomId, offer);
+      });
+    }
+
+    // Handle messages from the signaling server
+    socket.on('offer', (offer) => {
+      peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    });
+
+    socket.on('answer', (answer) => {
+      peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+    });
+
+    socket.on('candidate', (candidate) => {
+      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    });
+</script>
+</body>
+</html>
