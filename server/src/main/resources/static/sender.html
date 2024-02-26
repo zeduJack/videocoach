@@ -8,9 +8,11 @@
 <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
 <script>
     const localVideo = document.getElementById('localVideo');
-    const socket = io('http://localhost:3000');  // Connects to the server hosting the page
+    const socket = io('https://192.168.43.30:443');  // Connects to the server hosting the page
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    const roomId = '0';
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
       .then(stream => {
         localVideo.srcObject = stream;
         // Signal to the server to create a room or wait for a peer

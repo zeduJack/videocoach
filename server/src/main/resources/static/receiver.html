@@ -4,15 +4,25 @@
     <title>Peer B - Receiver</title>
 </head>
 <body>
-<video id="remoteVideo" autoplay></video>
+<video id="remoteVideo" controls autoplay playsinline></video>
 <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
 <script>
-    const socket = io('http://localhost:3000');  // Connects to the server hosting the page
+    const socket = io('https://192.168.43.30:443');  // Connects to the server hosting the page
     const remoteVideo = document.getElementById('remoteVideo');
     const peerConnection = new RTCPeerConnection();
 
+    const roomId = '0';
+
     peerConnection.ontrack = event => {
-      [remoteVideo.srcObject] = event.streams;
+        console.log(event.streams[0]);
+        if (event.streams && event.streams[0]) {
+            console.log(`Stream has video tracks: ${event.streams[0].getVideoTracks().length > 0}`);
+            //document.getElementById('remoteVideo').srcObject = event.streams[0];
+
+            const [remoteStream] = event.streams;
+            remoteVideo.srcObject = remoteStream;
+        }
+
     };
 
     peerConnection.onicecandidate = event => {
@@ -32,6 +42,8 @@
     socket.on('candidate', (candidate) => {
       peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
     });
+
+    socket.emit('create or join', roomId);
 </script>
 </body>
 </html>
