@@ -17,50 +17,47 @@ export class RecorderComponent {
     socket!: WebSocket;
 
     startStreaming(): void {
+        try {
+            if (!this.socket || this.socket?.readyState === WebSocket.CLOSED) {
+                this.socket = new WebSocket('wss://localhost:8443/video'); // for java server
+                //this.socket = new WebSocket('ws://localhost:8080'); // for node server
+            }
 
-        if (!this.socket || this.socket?.readyState === WebSocket.CLOSED) {
-             this.socket = new WebSocket('ws://localhost:8080/video'); // for java server
-            //this.socket = new WebSocket('ws://localhost:8080'); // for node server
-        }
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({video: true, audio: true})
+                    .then((mediaStream) => {
+                        this.mediaStream = mediaStream;
+                        this.mediaRecorder = new MediaRecorder(mediaStream);
+                        this.socket.binaryType = 'arraybuffer';
 
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({video: true, audio: true})
-                .then((mediaStream) => {
-                    this.mediaStream = mediaStream;
-                    this.mediaRecorder = new MediaRecorder(mediaStream);
-                    this.socket.binaryType = 'arraybuffer';
+                        this.mediaRecorder.ondataavailable = (event) => {
+                            if (event.data.size > 0 && this.socket.readyState === WebSocket.OPEN) {
+                                this.socket.send(event.data);
+                            }
+                        };
 
-                    this.mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0 && this.socket.readyState === WebSocket.OPEN) {
-                            this.socket.send(event.data);
+                        this.mediaRecorder.start(100); // Send data every 100ms
+
+                        this.socket.onerror = (error) => {
+                            console.error('WebSocket Error:', error);
+                        };
+                        this.socket.onclose = function (msg) {
+                            console.log("On Close = " + msg);
                         }
-                    };
 
-                    this.mediaRecorder.start(100); // Send data every 100ms
+                        this.socket.onmessage = (event) => {
+                            console.log('onmessage', event)
+                            // Handle received messages here
+                        };
 
-                    this.socket.onerror = (error) => {
-                        console.error('WebSocket Error:', error);
-                    };
-                    this.socket.onclose = function (msg) {
-                        console.log("On Close = " + msg);
-                    }
-
-                    this.socket.onmessage = (event) => {
-                        console.log('onmessage', event)
-                        // Handle received messages here
-                    };
-
-                })
-                .catch((error) => {
-                    console.error('Error accessing the camera:', error);
-                });
+                    })
+                    .catch((error) => {
+                        console.error('Error accessing the camera:', error);
+                    });
+            }
+        } catch (e) {
+            alert(e);
         }
-
-        // setTimeout(() => {
-        //     this.mediaRecorder.stop();
-        // }, 5000)
-
-        // setTimeout(() => this.mediaRecorder.requestData(), 1000)
     }
 
     protected readonly stop = stop;

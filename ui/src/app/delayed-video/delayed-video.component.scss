@@ -42,3 +42,9 @@
   background: #04AA6D; /* Green background */
   cursor: pointer; /* Cursor on hover */
 }
+
+
+video, canvas {
+    transform: scaleX(-1);
+    -webkit-transform: scaleX(-1); /* For Safari and older versions of Chrome */
+}

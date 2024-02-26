@@ -61,13 +61,14 @@ export class DelayedVideoComponent implements AfterViewInit{
 
   draw = () => {
     if (this.video.paused || this.video.ended) return;
-    this.counter++;
     this.maintainBufferSize();
     if (this.videoChunks.length > 2) {
       let index = Number(this.sliderElementRef.nativeElement.value) === 0 ? 0 :
           (this.sliderElementRef.nativeElement.value - 2);
       // console.log('slider value', this.sliderElementRef.nativeElement.value)
       // console.log('index', index);
+      this.counter++;
+      //console.log(this.counter);
 
       this.ctxDelayed.drawImage(this.videoChunks[index], 0, 0, this.delayed.width, this.delayed.height)
     }

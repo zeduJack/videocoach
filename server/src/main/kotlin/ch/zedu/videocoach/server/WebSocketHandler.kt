@@ -32,8 +32,8 @@ class WebSocketHandler : BinaryWebSocketHandler() {
             "-c:v", "copy",  // Copy video codec
             "-c:a", "aac",  // Convert audio to AAC
             "-f", "hls",  // HLS format
-            "-hls_time", "3",  // Segment length in seconds
-            "-hls_list_size", "200",  // Number of segments to keep in the playlist
+            "-hls_time", "4",  // Segment length in seconds
+            "-hls_list_size", "20",  // Number of segments to keep in the playlist
             "-hls_flags", "delete_segments",  // Delete old segments
             "/Users/zeljkodujmovic/Workarea/videocoach/ui/src/assets/hls/stream.m3u8"
         )
