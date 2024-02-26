@@ -2,6 +2,7 @@ const express = require('express');
 const https = require('https');
 const fs = require('fs');
 const socketIo = require('socket.io');
+const os = require('os');
 
 console.log('key', __dirname + '/key.pem');
 
@@ -72,7 +73,21 @@ io.on('connection', socket => {
   });
 });
 
+function getLocalIPv4Address() {
+    const interfaces = os.networkInterfaces();
+    for (const iface of Object.values(interfaces)) {
+        for (const alias of iface) {
+            if (alias.family === 'IPv4' && !alias.internal) {
+                return alias.address;
+            }
+        }
+    }
+    return '0.0.0.0'; // Fallback to listening on all interfaces if a specific local IP is not found
+}
+const hostname = getLocalIPv4Address();
+console.log('Your local IPv4 address is:', hostname);
+
 const PORT = process.env.PORT || 443;
-server.listen(PORT, () => {
+server.listen(PORT, hostname ,() => {
   console.log(`Server listening on port ${PORT}`);
 });
