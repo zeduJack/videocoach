@@ -13,36 +13,17 @@
     const peerConnections = {};  // Object to hold peer connection instances by peer ID
 
     socket.on('offer', (data) => {
-        const peerId = data.peerId;  // Expecting that each offer includes a peer ID
-        const offer = data.offer;
+    const peerId = data.peerId;  // Assuming the offer includes a peerId
+    const offer = data.offer;
 
-        const peerConnection = new RTCPeerConnection();
-        peerConnections[peerId] = peerConnection;
+    // Call initializePeerConnection when a new offer is received
+    const peerConnection = initializePeerConnection(null, peerId);
 
-        peerConnection.ontrack = event => {
-            const stream = event.streams[0];
-            if (!document.getElementById(`video-${stream.id}`)) {
-                const videoElem = document.createElement('video');
-                videoElem.id = `video-${stream.id}`;
-                videoElem.srcObject = stream;
-                videoElem.autoplay = true;
-                videoElem.controls = true;
-                videoElem.playsInline = true;
-                videoContainer.appendChild(videoElem);
-            }
-        };
-
-        peerConnection.onicecandidate = event => {
-            if (event.candidate) {
-                socket.emit('candidate', { peerId, candidate: event.candidate });
-            }
-        };
-
-        peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+     peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
         .then(() => peerConnection.createAnswer())
         .then(answer => {
             peerConnection.setLocalDescription(answer);
-            socket.emit('answer', { peerId, answer });
+            socket.emit('answer', { room: roomId, answer: answer, peerId: peerId });
         })
         .catch(e => console.error(e));
     });
@@ -50,9 +31,47 @@
     socket.on('candidate', (data) => {
         const peerConnection = peerConnections[data.peerId];
         if (peerConnection && data.candidate) {
-            peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate))
+            .catch(e => console.error(e));
         }
     });
+
+    function initializePeerConnection(stream, peerId) {
+    const peerConnection = new RTCPeerConnection();
+
+    // Store the peer connection with its associated peerId
+    peerConnections[peerId] = peerConnection;
+
+    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+
+    peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+            socket.emit('candidate', { room: roomId, candidate: event.candidate, peerId: peerId });
+        }
+    };
+
+    peerConnection.ontrack = event => {
+        const stream = event.streams[0];
+        // Now we include peerId in the video element's ID for clearer association
+        if (!document.getElementById(`video-${peerId}`)) {
+            const videoElem = document.createElement('video');
+            videoElem.id = `video-${peerId}`;  // Use peerId to uniquely identify the video element
+            videoElem.srcObject = stream;
+            videoElem.autoplay = true;
+            videoElem.controls = true;
+            videoElem.playsInline = true;
+            videoContainer.appendChild(videoElem);
+        }
+    };
+
+    // Sending offer to the other peer
+    peerConnection.createOffer().then(offer => {
+        peerConnection.setLocalDescription(offer);
+        socket.emit('offer', { room: roomId, offer: offer, peerId: peerId });
+    });
+
+    return peerConnection;
+}
 
     socket.emit('create or join', roomId);
 </script>
