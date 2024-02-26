@@ -36,13 +36,10 @@
         }
     });
 
-    function initializePeerConnection(stream, peerId) {
+function initializePeerConnection(peerId) {
     const peerConnection = new RTCPeerConnection();
 
-    // Store the peer connection with its associated peerId
-    peerConnections[peerId] = peerConnection;
-
-    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+    // No stream operations here as we're not adding any tracks immediately
 
     peerConnection.onicecandidate = event => {
         if (event.candidate) {
@@ -52,10 +49,9 @@
 
     peerConnection.ontrack = event => {
         const stream = event.streams[0];
-        // Now we include peerId in the video element's ID for clearer association
         if (!document.getElementById(`video-${peerId}`)) {
             const videoElem = document.createElement('video');
-            videoElem.id = `video-${peerId}`;  // Use peerId to uniquely identify the video element
+            videoElem.id = `video-${peerId}`;
             videoElem.srcObject = stream;
             videoElem.autoplay = true;
             videoElem.controls = true;
@@ -63,6 +59,9 @@
             videoContainer.appendChild(videoElem);
         }
     };
+
+    return peerConnection;
+}
 
     // Sending offer to the other peer
     peerConnection.createOffer().then(offer => {
