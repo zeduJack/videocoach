@@ -4,9 +4,11 @@
     <title>Peer B - Receiver</title>
 </head>
 <body>
-<video id="remoteVideo" controls autoplay playsinline></video>
+<div id="videoContainer"></div>
 <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
 <script>
+
+
     const socket = io('https://192.168.43.30:443');  // Connects to the server hosting the page
     const remoteVideo = document.getElementById('remoteVideo');
     const peerConnection = new RTCPeerConnection();
@@ -14,15 +16,19 @@
     const roomId = '0';
 
     peerConnection.ontrack = event => {
-        console.log(event.streams[0]);
-        if (event.streams && event.streams[0]) {
-            console.log(`Stream has video tracks: ${event.streams[0].getVideoTracks().length > 0}`);
-            //document.getElementById('remoteVideo').srcObject = event.streams[0];
-
+        const stream = event.streams.at(-1);
+        if (!document.getElementById(`video-${stream.id}`)) {
+            const videoElem = document.createElement('video');
+            videoElem.id = `video-${stream.id}`;
             const [remoteStream] = event.streams;
-            remoteVideo.srcObject = remoteStream;
-        }
+            videoElem.srcObject = remoteStream;
+            videoElem.autoplay = true;
+            videoElem.controls = true;
+            videoElem.playsInline = true; // Recommended for web browsers on mobile devices
 
+            // Append the new video element to the container
+            document.getElementById('videoContainer').appendChild(videoElem);
+        }
     };
 
     peerConnection.onicecandidate = event => {

@@ -50,13 +50,10 @@ io.on('connection', socket => {
       console.log('creating room...');
       socket.join(room);
       socket.emit('join room', room);
-    } else if (numClients === 1) {
+    } else {
       console.log('joining room...');
       socket.join(room);
-      socket.emit('joined', room);
-    } else {
-      console.log('room is full...');
-      socket.emit('full', room);
+      socket.emit('join room', room);
     }
   });
 
@@ -85,9 +82,10 @@ function getLocalIPv4Address() {
     return '0.0.0.0'; // Fallback to listening on all interfaces if a specific local IP is not found
 }
 const hostname = getLocalIPv4Address();
-console.log('Your local IPv4 address is:', hostname);
+console.log(`Your local IPv4 address is: https://${hostname}`);
+console.log(`Receiver on: https://${hostname}/receiver`);
 
 const PORT = process.env.PORT || 443;
-server.listen(PORT, hostname ,() => {
+server.listen(PORT ,() => {
   console.log(`Server listening on port ${PORT}`);
 });
