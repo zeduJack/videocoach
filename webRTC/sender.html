@@ -9,48 +9,52 @@
 <script>
     const localVideo = document.getElementById('localVideo');
     const socket = io('https://192.168.43.30:443');  // Connects to the server hosting the page
-
     const roomId = '0';
+    let peerId;
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-      .then(stream => {
+    .then(stream => {
         localVideo.srcObject = stream;
-        // Signal to the server to create a room or wait for a peer
         socket.emit('create or join', roomId);
         initializePeerConnection(stream);
-      }).catch(error => {
+    }).catch(error => {
         console.error('Error accessing media devices.', error);
-      });
-
-    const peerConnection = new RTCPeerConnection();
+    });
 
     function initializePeerConnection(stream) {
-      stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+        const peerConnection = new RTCPeerConnection();
 
-      peerConnection.onicecandidate = event => {
-        if (event.candidate) {
-          socket.emit('candidate', roomId, event.candidate);
-        }
-      };
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
 
-      // Sending offer to the other peer
-      peerConnection.createOffer().then(offer => {
-        peerConnection.setLocalDescription(offer);
-        socket.emit('offer', roomId, offer);
-      });
+        peerConnection.onicecandidate = event => {
+            if (event.candidate) {
+                socket.emit('candidate', { room: roomId, candidate: event.candidate, peerId: peerId });
+            }
+        };
+
+        // Sending offer to the other peer
+        peerConnection.createOffer().then(offer => {
+            peerConnection.setLocalDescription(offer);
+            socket.emit('offer', { room: roomId, offer: offer, peerId: peerId });
+        });
     }
 
     // Handle messages from the signaling server
-    socket.on('offer', (offer) => {
-      peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    socket.on('joined room', (room, data) => {
+        // Server should send back the peerId for this client
+        peerId = data.peerId;
     });
 
-    socket.on('answer', (answer) => {
-      peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+    socket.on('answer', (data) => {
+        if (data.peerId === peerId) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        }
     });
 
-    socket.on('candidate', (candidate) => {
-      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    socket.on('candidate', (data) => {
+        if (data.peerId === peerId) {
+            peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
     });
 </script>
 </body>
